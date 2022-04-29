@@ -1,12 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
-from ETL.db_handle import execute_sql, upsert_brand_theme
+from ETL.db_handle import execute_sql
 
 
 def find_theme_keyescape():
     brand_num, brand_name = 0, '키이스케이프'
-    # reserve_url = 'https://keyescape.co.kr/web/home.php?go=rev.make'
     url = 'https://keyescape.co.kr/web/home.php?go=rev.make'
     headers = {'content-type': 'text/html; charset=utf-8'}
     res = requests.get(url, headers=headers)
@@ -41,7 +40,7 @@ def find_theme_keyescape():
                 'branch_name': branch_dict[k],
                 'theme_num': theme_num,
                 'theme_name': theme_name,
-                # 'reserve_url': reserve_url,
+                'request_key': None,
             }
             result.append(res_dict)
     return result
@@ -50,15 +49,10 @@ def find_theme_keyescape():
 
 # def post_reservation_keyescape(theme_id, date_str, theme_num):
 def post_reservation_keyescape(date_str, record):
-    # sql = '''SELECT theme_num, theme_name
-    # FROM roomona.escape_brand_theme
-    # WHERE theme_id = %s''' % theme_id
-    # selected = execute_sql(sql)
     url = 'https://keyescape.co.kr/web/rev.theme_time.php'
     headers = {'content-type': 'application/x-www-form-urlencoded; charset=utf-8'}
     data = {
         'rev_days': date_str,
-        # 'theme_num': str(selected['theme_num'].values[0]),
         'theme_num': str(record['theme_num'].values[0]),
     }
     res = requests.post(url, headers=headers, data=data)
@@ -71,18 +65,17 @@ def post_reservation_keyescape(date_str, record):
         else:
             impossible.append(li.text.strip())
     result = {
-        # 'theme': selected['theme_name'].values[0],
         'theme': record['theme_name'].values[0],
         'possible': possible,
         'impossible': impossible,
     }
     return result
 # post_reservation_keyescape(142, '2022-04-30')
+# check_reservation(142, '2022-04-30')
 
 
 def find_theme_xphobia():
     brand_num, brand_name = 1, '비트포비아'
-    # reserve_url = 'https://www.xphobia.net/reservation/reservation_check.php'
     date = (datetime.now() + timedelta(days=1)).strftime('%Y%m%d')
     url = 'https://www.xphobia.net/reservation/ck_no1.php'
     data = {'cate': '포비아 던전',  # 방탈출 카페도 동일하지만 생략함
@@ -97,16 +90,17 @@ def find_theme_xphobia():
         res = requests.post(url, data=data)
         for j2 in res.json():
             theme_num, theme_name = j2['ro_id'], j2['ro_name']
-            if theme_name == '렛츠 플레이':
-                theme_name += ' - LETS PLAY'
+            # if theme_name == '렛츠 플레이':
+            #     theme_name += ' - LETS PLAY'  # 예약 확인 시 테마명 그대로 필요함
+            # branch_name_tmp = tb['branch_name'].replace('Ⅱ', 'II')
             res_dict = {
                 'brand_num': brand_num,
                 'brand_name': brand_name,
                 'branch_num': branch_num,
-                'branch_name': branch_name,
+                'branch_name': branch_name.replace('Ⅱ', 'II'),  # jb와 동일하게 변경
                 'theme_num': theme_num,
                 'theme_name': theme_name,
-                # 'reserve_url': reserve_url,
+                'request_key': branch_name,
             }
             result.append(res_dict)
     return result
@@ -114,13 +108,9 @@ def find_theme_xphobia():
 
 
 def post_reservation_xphobia(date_str, record):
-    # sql = '''SELECT theme_num, theme_name, branch_name
-    # FROM roomona.escape_brand_theme
-    # WHERE theme_id = %s''' % theme_id
-    # selected = execute_sql(sql)
     url = 'https://www.xphobia.net/reservation/ck_date2_no1.php'  # 두번 요청해야 함
     weekend = datetime.strptime(date_str, '%Y-%m-%d').weekday() >= 5
-    data = {'shop': record['branch_name'].values[0],
+    data = {'shop': record['request_key'].values[0],
             'quest': record['theme_name'].values[0],
             'quest2': record['theme_name'].values[0],
             'date': ''.join(date_str.split('-'))}
@@ -132,8 +122,8 @@ def post_reservation_xphobia(date_str, record):
     data['time[]'] = time_all
     impossible_dict = requests.post(url, data=data).json()
 
-    impossible = [j['rel_order_time'] for j in impossible_dict]
-    possible = [t for t in time_all if t not in impossible]
+    impossible = sorted([j['rel_order_time'] for j in impossible_dict])
+    possible = sorted([t for t in time_all if t not in impossible])
     result = {
         'theme': record['theme_name'].values[0],
         'possible': possible,
@@ -141,11 +131,12 @@ def post_reservation_xphobia(date_str, record):
     }
     return result
 # post_reservation_xphobia(3355, '2022-04-28')
+# check_reservation(3355, '2022-04-30')
+# check_reservation(3380, '2022-04-30')
 
 
 def find_theme_secretgarden():
     brand_num, brand_name = 2, '비밀의화원'
-
     url = 'http://www.secretgardenescape.com/reservation.html'
     headers = {'content-type': 'text/html; charset=utf-8'}
     res = requests.get(url, headers=headers)
@@ -179,6 +170,7 @@ def find_theme_secretgarden():
                 'branch_name': branch_dict[branch_num],
                 'theme_num': theme_num,
                 'theme_name': theme_name,
+                'request_key': None,
             }
             result.append(res_dict)
     return result
@@ -186,10 +178,6 @@ def find_theme_secretgarden():
 
 
 def get_reservation_secretgarden(date_str, record):
-    # sql = '''SELECT theme_num, theme_name, branch_num
-    # FROM roomona.escape_brand_theme
-    # WHERE theme_id = %s''' % theme_id
-    # selected = execute_sql(sql)
     url = ('http://www.secretgardenescape.com/reservation.html?' +
            'k_shopno=' + str(record['branch_num'].values[0]) +
            '&rdate=' + date_str +
@@ -213,8 +201,7 @@ def get_reservation_secretgarden(date_str, record):
 
 
 def find_theme_zeroworld():
-    # 강남점만 진행
-    brand_num, brand_name, branch_num, branch_name = 3, '제로월드', 0, '강남점'
+    brand_num, brand_name, branch_num, branch_name = 3, '제로월드', 0, '강남점'  # 강남점만 진행
     # global z_session
     url = 'https://www.zerogangnam.com/theme'
     res = requests.get(url)
@@ -231,6 +218,7 @@ def find_theme_zeroworld():
             'branch_name': branch_name,
             'theme_num': theme_num,
             'theme_name': theme_name,
+            'request_key': None,
         }
         result.append(res_dict)
     return result
@@ -238,11 +226,6 @@ def find_theme_zeroworld():
 
 
 def post_reservation_zeroworld(date_str, record):
-    # sql = '''SELECT theme_num, theme_name, branch_num
-    # FROM roomona.escape_brand_theme
-    # WHERE theme_id = %s''' % theme_id
-    # selected = execute_sql(sql)
-
     # get session
     url = 'https://www.zerogangnam.com/theme'
     res = requests.get(url)
@@ -284,15 +267,82 @@ def post_reservation_zeroworld(date_str, record):
 # post_reservation_zeroworld(3437, '2022-04-26')
 
 
-# def find_theme_nextedition():
-#     url_main = 'https://www.nextedition.co.kr/shops/'
-#     res = requests.get(url_main)
-#     soup = BeautifulSoup(res.text, 'html.parser')
-#     # TODO: branch num이 숫자가 아님 - 보류(table에 request key 추가 후 비트포비아도 같이 수정하기)
+def find_theme_nextedition():
+    brand_num, brand_name = 4, '넥스트에디션'
+    url_main = 'https://www.nextedition.co.kr/shops/'
+    res = requests.get(url_main)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    # url 확인
+    rk_list = []
+    for a in soup.find(class_='modal-body').find_all('a'):
+        rk = a['href'].split('/')[-1]
+        for cafe_filt in ['gangnam', 'gundae', 'sinchon', 'jamsil']:
+            if cafe_filt in rk.lower():
+                rk_list.append(a['href'].split('/')[-1])
+
+    result = []
+    for rk in rk_list:
+        url = url_main + rk
+        res = requests.get(url)
+        soup = BeautifulSoup(res.text, 'html.parser')
+        branch_name = soup.h1.text.split('넥스트에디션 ')[1]
+        for theme_tag in soup.find(class_='themes').find_all(class_='white-page-content'):
+            theme_name = theme_tag.h2.text.strip()
+            branch_num, theme_num = theme_tag.find(class_='res-btn')['onclick'].split('(')[1].split(')')[0].split(', ')[:2]
+            res_dict = {
+                'brand_num': brand_num,
+                'brand_name': brand_name,
+                'branch_num': branch_num,
+                'branch_name': branch_name,
+                'theme_num': theme_num,
+                'theme_name': theme_name,
+                'request_key': rk,
+            }
+            result.append(res_dict)
+    return result
+            # time_dict = {}
+            # for res_tag in theme_tag.find_all(class_='res-btn'):
+            #     cafe_theme_time = res_tag['onclick'].split('(')[1].split(')')[0].split(', ')
+            #     time_dict[cafe_theme_time[2]] = res_tag.find(class_='time').text.strip()
+            # cafe_num = cafe_theme_time[0]
+            # print('넥스트에디션', theme)
+            # if theme in result:
+            #     print('theme duplicated error', theme, result[theme], cafe_name)
+            # result[theme] = (cafe_num, time_dict)
+
+
+def get_reservation_nextedition(date_str, record):
+    # 두번 요청해야 함
+    url = 'https://www.nextedition.co.kr/shops/' + record['request_key'].values[0]
+    res = requests.get(url)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    for theme_tag in soup.find(class_='themes').find_all(class_='white-page-content'):  # 전체 테마 예약정보가 한 페이지에 있음
+        theme_num = theme_tag.find(class_='res-btn')['onclick'].split('(')[1].split(')')[0].split(', ')[1]
+        if int(theme_num) == record['theme_num'].values[0]:
+            time_dict = {}
+            for res_tag in theme_tag.find_all(class_='res-btn'):
+                cafe_theme_time = res_tag['onclick'].split('(')[1].split(')')[0].split(', ')
+                time_dict[cafe_theme_time[2]] = res_tag.find(class_='time').text.strip()
+
+    url = 'https://www.nextedition.co.kr/reservation_info?date=' + date_str + '&shop=' + str(record['branch_num'].values[0])
+    res = requests.get(url, headers={'x-requested-with': 'XMLHttpRequest'})
+    impossible_num = res.text.split('[')[1].split(']')[0].split(', ')
+    impossible, possible = [], []
+    for time_num in time_dict:
+        if time_num in impossible_num:
+            impossible.append(time_dict[time_num])
+        else:
+            possible.append(time_dict[time_num])
+    result = {
+        'theme': record['theme_name'].values[0],
+        'possible': possible,
+        'impossible': impossible,
+    }
+    return result
 
 
 def check_reservation(theme_id, date_str):
-    sql = '''SELECT brand_num, brand_name, branch_num, branch_name, theme_num, theme_name
+    sql = '''SELECT brand_num, brand_name, branch_num, branch_name, theme_num, theme_name, request_key
     FROM roomona.escape_brand_theme
     WHERE theme_id = %s''' % theme_id
     selected = execute_sql(sql)
@@ -304,11 +354,13 @@ def check_reservation(theme_id, date_str):
         return get_reservation_secretgarden(date_str, selected)
     if selected['brand_num'].values[0] == 3:
         return post_reservation_zeroworld(date_str, selected)
+    if selected['brand_num'].values[0] == 4:
+        return get_reservation_nextedition(date_str, selected)
 
+# for theme_id in [2197, 3083, 2019, 3386, 3593, 3437, 3159, 3498]:
+#     for date_str in ['2022-04-30', '2022-05-01', '2022-05-02', '2022-05-03', '2022-05-04']:
+#         cr = check_reservation(theme_id, date_str)
+#         print(cr['theme'], date_str)
+#         print(cr['possible'])
 
-for theme_id in [2197, 3083, 2019, 2021, 3386, 3593, 3437, 3321]:
-    for date_str in ['2022-04-27', '2022-04-28', '2022-04-29']:
-        cr = check_reservation(theme_id, date_str)
-        print(cr['theme'], date_str)
-        print(cr['possible'])
 

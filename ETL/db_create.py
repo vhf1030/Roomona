@@ -131,6 +131,7 @@ def create_brand_theme_table():
     `branch_name` VARCHAR(63) NOT NULL,
     `theme_num` SMALLINT NOT NULL,
     `theme_name` VARCHAR(63) NOT NULL,
+    `request_key` VARCHAR(63),
     `theme_id` SMALLINT DEFAULT NULL,
     `updated` TIMESTAMP NOT NULL DEFAULT NOW(),
     `deleted` BOOLEAN NOT NULL DEFAULT 0,

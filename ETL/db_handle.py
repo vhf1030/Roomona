@@ -132,7 +132,7 @@ def upsert_theme_review_text(theme_review_text_list):
 
 
 def upsert_brand_theme(brand_theme_list):
-    columns = ['brand_num', 'brand_name', 'branch_num', 'branch_name', 'theme_num', 'theme_name']
+    columns = ['brand_num', 'brand_name', 'branch_num', 'branch_name', 'theme_num', 'theme_name', 'request_key']
     val = [tuple(cm[c] for c in columns) for cm in brand_theme_list]
     sql = ("INSERT INTO `escape_brand_theme` (" + ', '.join(columns) +
            ") VALUES (" + ', '.join(['%s']*len(columns)) +
@@ -146,5 +146,6 @@ def upsert_brand_theme(brand_theme_list):
 # upsert_brand_theme(find_theme_xphobia())
 # upsert_brand_theme(find_theme_secretgarden())
 # upsert_brand_theme(find_theme_zeroworld())
+# upsert_brand_theme(find_theme_nextedition())
 
 
