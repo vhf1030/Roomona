@@ -149,3 +149,18 @@ def upsert_brand_theme(brand_theme_list):
 # upsert_brand_theme(find_theme_nextedition())
 
 
+def upsert_theme_reserve(theme_reserve_list):
+    columns = ['theme_id', 'rsv_date', 'rsv_time', 'available']
+    val = [tuple(cm[c] for c in columns) for cm in theme_reserve_list]
+    sql = ("INSERT INTO `escape_theme_reserve` (" + ', '.join(columns) +
+           ") VALUES (" + ', '.join(['%s']*len(columns)) +
+           ") ON DUPLICATE KEY UPDATE " +
+           ', '.join([c + ' = VALUES(' + c + ')' for c in columns]) +
+           ", updated = default;")  # update 갱신
+    cursor.executemany(sql, val)
+    conn.commit()
+    return
+
+# upsert_theme_reserve(check_reservation(3498, '2022-05-04'))
+# upsert_theme_reserve(check_reservation(3498, '2022-05-03'))
+# upsert_theme_reserve(check_reservation(3498, '2022-05-02'))

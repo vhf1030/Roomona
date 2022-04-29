@@ -143,3 +143,22 @@ def create_brand_theme_table():
     conn.commit()
     print(sql)
     return
+
+
+def create_theme_reserve_table():
+    sql = '''CREATE TABLE `escape_theme_reserve` (
+    `theme_id` SMALLINT NOT NULL,
+    `rsv_date` DATE NOT NULL,
+    `rsv_time` TIME NOT NULL,
+    `available` BOOLEAN NOT NULL,
+    `updated` TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE INDEX `theme_user_date_UNIQUE` (`theme_id`, `rsv_date`, `rsv_time`),
+    INDEX (`theme_id`),
+    INDEX (`rsv_date`)
+    )ENGINE = MyISAM;
+    '''
+    cursor.execute(sql)
+    conn.commit()
+    print(sql)
+    return
+

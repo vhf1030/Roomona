@@ -1,4 +1,5 @@
 import requests
+import json
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from ETL.db_handle import execute_sql
@@ -58,19 +59,29 @@ def post_reservation_keyescape(date_str, record):
     res = requests.post(url, headers=headers, data=data)
     soup = BeautifulSoup(res.text, 'html.parser')
 
-    possible, impossible = [], []
+    # possible, impossible = [], []
+    # for li in soup.find_all('li'):
+    #     if 'possible' in li['class']:
+    #         possible.append(li.text.strip())
+    #     else:
+    #         impossible.append(li.text.strip())
+    # result = {
+    #     'theme': record['theme_name'].values[0],
+    #     'possible': possible,
+    #     'impossible': impossible,
+    # }
+
+    rsv_time_avail = []
     for li in soup.find_all('li'):
-        if 'possible' in li['class']:
-            possible.append(li.text.strip())
-        else:
-            impossible.append(li.text.strip())
+        time = li.text.strip()
+        avail = 1 if 'possible' in li['class'] else 0
+        rsv_time_avail.append([time, avail])
     result = {
         'theme': record['theme_name'].values[0],
-        'possible': possible,
-        'impossible': impossible,
+        'rsv_time_avail': rsv_time_avail,
     }
+
     return result
-# post_reservation_keyescape(142, '2022-04-30')
 # check_reservation(142, '2022-04-30')
 
 
@@ -122,17 +133,27 @@ def post_reservation_xphobia(date_str, record):
     data['time[]'] = time_all
     impossible_dict = requests.post(url, data=data).json()
 
-    impossible = sorted([j['rel_order_time'] for j in impossible_dict])
-    possible = sorted([t for t in time_all if t not in impossible])
+    # impossible = sorted([j['rel_order_time'] for j in impossible_dict])
+    # possible = sorted([t for t in time_all if t not in impossible])
+    # result = {
+    #     'theme': record['theme_name'].values[0],
+    #     'possible': possible,
+    #     'impossible': impossible,
+    # }
+
+    rsv_time_avail = []
+    impossible = [j['rel_order_time'] for j in impossible_dict]
+    for time in time_all:
+        avail = 1 if time not in impossible else 0
+        rsv_time_avail.append([time, avail])
     result = {
         'theme': record['theme_name'].values[0],
-        'possible': possible,
-        'impossible': impossible,
+        'rsv_time_avail': rsv_time_avail,
     }
+
     return result
-# post_reservation_xphobia(3355, '2022-04-28')
-# check_reservation(3355, '2022-04-30')
-# check_reservation(3380, '2022-04-30')
+# check_reservation(3355, '2022-05-04')
+# check_reservation(3320, '2022-05-04')
 
 
 def find_theme_secretgarden():
@@ -184,20 +205,29 @@ def get_reservation_secretgarden(date_str, record):
            '&prdno=' + str(record['theme_num'].values[0]))
     res = requests.get(url)
     soup = BeautifulSoup(res.text, 'html.parser')
-    impossible, possible = [], []
+    # impossible, possible = [], []
+    # for li in soup.find(class_='reserve_Time').find_all('li'):
+    #     time = li.find('span').text.strip()
+    #     if 'onclick' in li.find('a').attrs:
+    #         possible.append(time)
+    #     else:
+    #         impossible.append(time)
+    # result = {
+    #     'theme': record['theme_name'].values[0],
+    #     'possible': possible,
+    #     'impossible': impossible,
+    # }
+    rsv_time_avail = []
     for li in soup.find(class_='reserve_Time').find_all('li'):
         time = li.find('span').text.strip()
-        if 'onclick' in li.find('a').attrs:
-            possible.append(time)
-        else:
-            impossible.append(time)
+        avail = 1 if 'onclick' in li.find('a').attrs else 0
+        rsv_time_avail.append([time, avail])
     result = {
         'theme': record['theme_name'].values[0],
-        'possible': possible,
-        'impossible': impossible,
+        'rsv_time_avail': rsv_time_avail,
     }
     return result
-# get_reservation_secretgarden(3295, '2022-04-26')
+# check_reservation(3295, '2022-05-04')
 
 
 def find_theme_zeroworld():
@@ -227,7 +257,17 @@ def find_theme_zeroworld():
 
 def post_reservation_zeroworld(date_str, record):
     # get session
-    url = 'https://www.zerogangnam.com/theme'
+    # url = 'https://www.zerogangnam.com/theme'
+    # res = requests.get(url)
+    # soup = BeautifulSoup(res.text, 'html.parser')
+    # csrf = soup.find(id='csrf')['content']
+    # session = {
+    #     'xsrf': res.cookies['XSRF-TOKEN'],
+    #     'session': res.cookies['_session'],
+    #     'csrf': csrf
+    # }
+
+    url = 'https://www.zerogangnam.com/reservation'
     res = requests.get(url)
     soup = BeautifulSoup(res.text, 'html.parser')
     csrf = soup.find(id='csrf')['content']
@@ -236,6 +276,9 @@ def post_reservation_zeroworld(date_str, record):
         'session': res.cookies['_session'],
         'csrf': csrf
     }
+    # 준비중 테마
+    after_theme = json.loads(soup.find(id='reservationHiddenData').text)['after']
+    after = True if str(record['theme_num'].values[0]) in after_theme else False
 
     url = 'https://www.zerogangnam.com/reservation/theme'
     headers = {
@@ -252,19 +295,29 @@ def post_reservation_zeroworld(date_str, record):
                      if str(record['theme_num'].values[0]) in time_dict
                      else str(int(record['theme_num'].values[0])+1))
     result_dict = time_dict[theme_num_tmp]
-    impossible, possible = [], []
+    # impossible, possible = [], []
+    # for rd in result_dict:
+    #     if rd['reservation']:
+    #         impossible.append(':'.join(rd['time'].split(':')[:-1]))
+    #     else:
+    #         possible.append(':'.join(rd['time'].split(':')[:-1]))
+    # result = {
+    #     'theme': record['theme_name'].values[0],
+    #     'possible': possible,
+    #     'impossible': impossible,
+    # }
+    rsv_time_avail = []
     for rd in result_dict:
-        if rd['reservation']:
-            impossible.append(':'.join(rd['time'].split(':')[:-1]))
-        else:
-            possible.append(':'.join(rd['time'].split(':')[:-1]))
+        time = ':'.join(rd['time'].split(':')[:-1])
+        avail = 1 if not rd['reservation'] and not after else 0
+        rsv_time_avail.append([time, avail])
     result = {
         'theme': record['theme_name'].values[0],
-        'possible': possible,
-        'impossible': impossible,
+        'rsv_time_avail': rsv_time_avail,
     }
     return result
-# post_reservation_zeroworld(3437, '2022-04-26')
+# check_reservation(3437, '2022-05-10')
+# check_reservation(3593, '2022-05-10')  # 헐 준비중 체크
 
 
 def find_theme_nextedition():
@@ -316,7 +369,7 @@ def get_reservation_nextedition(date_str, record):
     url = 'https://www.nextedition.co.kr/shops/' + record['request_key'].values[0]
     res = requests.get(url)
     soup = BeautifulSoup(res.text, 'html.parser')
-    for theme_tag in soup.find(class_='themes').find_all(class_='white-page-content'):  # 전체 테마 예약정보가 한 페이지에 있음
+    for theme_tag in soup.find(class_='themes').find_all(class_='white-page-content'):  # 전체 테마 예약정보가 한 페이지에 있음 - TODO: class 사용하여 구현
         theme_num = theme_tag.find(class_='res-btn')['onclick'].split('(')[1].split(')')[0].split(', ')[1]
         if int(theme_num) == record['theme_num'].values[0]:
             time_dict = {}
@@ -327,18 +380,28 @@ def get_reservation_nextedition(date_str, record):
     url = 'https://www.nextedition.co.kr/reservation_info?date=' + date_str + '&shop=' + str(record['branch_num'].values[0])
     res = requests.get(url, headers={'x-requested-with': 'XMLHttpRequest'})
     impossible_num = res.text.split('[')[1].split(']')[0].split(', ')
-    impossible, possible = [], []
+    # impossible, possible = [], []
+    # for time_num in time_dict:
+    #     if time_num in impossible_num:
+    #         impossible.append(time_dict[time_num])
+    #     else:
+    #         possible.append(time_dict[time_num])
+    # result = {
+    #     'theme': record['theme_name'].values[0],
+    #     'possible': possible,
+    #     'impossible': impossible,
+    # }
+    rsv_time_avail = []
     for time_num in time_dict:
-        if time_num in impossible_num:
-            impossible.append(time_dict[time_num])
-        else:
-            possible.append(time_dict[time_num])
+        time = time_dict[time_num]
+        avail = 1 if time_num not in impossible_num else 0
+        rsv_time_avail.append([time, avail])
     result = {
         'theme': record['theme_name'].values[0],
-        'possible': possible,
-        'impossible': impossible,
+        'rsv_time_avail': rsv_time_avail,
     }
     return result
+# check_reservation(3498, '2022-05-04')
 
 
 def check_reservation(theme_id, date_str):
@@ -347,20 +410,30 @@ def check_reservation(theme_id, date_str):
     WHERE theme_id = %s''' % theme_id
     selected = execute_sql(sql)
     if selected['brand_num'].values[0] == 0:
-        return post_reservation_keyescape(date_str, selected)
+        reserve = post_reservation_keyescape(date_str, selected)
     if selected['brand_num'].values[0] == 1:
-        return post_reservation_xphobia(date_str, selected)
+        reserve = post_reservation_xphobia(date_str, selected)
     if selected['brand_num'].values[0] == 2:
-        return get_reservation_secretgarden(date_str, selected)
+        reserve = get_reservation_secretgarden(date_str, selected)
     if selected['brand_num'].values[0] == 3:
-        return post_reservation_zeroworld(date_str, selected)
+        reserve = post_reservation_zeroworld(date_str, selected)
     if selected['brand_num'].values[0] == 4:
-        return get_reservation_nextedition(date_str, selected)
+        reserve = get_reservation_nextedition(date_str, selected)
+    theme_reserve_list = []
+    for rta in reserve['rsv_time_avail']:
+        theme_reserve_tmp = {
+            'theme_id': theme_id,
+            'rsv_date': date_str,
+            'rsv_time': rta[0],
+            'available': rta[1],
+        }
+        theme_reserve_list.append(theme_reserve_tmp)
+    return theme_reserve_list
 
 # for theme_id in [2197, 3083, 2019, 3386, 3593, 3437, 3159, 3498]:
 #     for date_str in ['2022-04-30', '2022-05-01', '2022-05-02', '2022-05-03', '2022-05-04']:
 #         cr = check_reservation(theme_id, date_str)
-#         print(cr['theme'], date_str)
-#         print(cr['possible'])
+#         upsert_theme_reserve(check_reservation(theme_id, date_str))
+
 
 
