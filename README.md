@@ -7,3 +7,19 @@
  - 테마별 지표 표준화(별점, 난이도, 예약율)
  - 리뷰 지표 텍스트마이닝(공포도, 활동성, 추천인원)
  - 유저기반 테마 비교
+
+2. 구현
+ 1) 방탈출 플랫폼 ~ 브랜드 자체 페이지 데이터 수집 및 연동 및 prod DB 생성
+  - escape_theme_jb: 테마, 매장, 별점
+   - escape_theme_meta_jb: 제한시간, 장르, 난이도, 장치타입, 활동성, 추천인원
+   - escape_theme_review_stat_jb: 유저, 난이도, 성공여부, 남은시간, 힌트수
+   - escape_theme_review_stat_jb: 리뷰(텍스트마이닝을 통한 활동성, 공포도, 추천인원 - 보류)
+  - escape_cafe_jb: 매장, 위치, 별점
+  - escape_brand_theme: 예약정보 확인을 위해 필요한 브랜드 자체 정보(지점, 테마)
+ 2) 예약현황 수집
+  ~~- escape_theme_reserve_pd: 테마, 예약일, 예약시간, 예약여부 (prod DB)~~ (product db를 따로 생성할 정도로 레코드 수가 많지 않음)
+  - escape_theme_reserve: 테마, 예약일, 예약시간, 예약여부, 확인 일자
+ 3) 테마 정보 인터페이스 구현 및 DB 연동
+ 4) 예약 확인 인터페이스 구현 및 DB 연동
+ - 
+
