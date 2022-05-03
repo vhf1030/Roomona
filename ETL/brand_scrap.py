@@ -2,6 +2,7 @@ import requests
 import json
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
+from pytimekr import pytimekr
 from ETL.db_handle import execute_sql
 
 
@@ -120,12 +121,13 @@ def find_theme_xphobia():
 
 def post_reservation_xphobia(date_str, record):
     url = 'https://www.xphobia.net/reservation/ck_date2_no1.php'  # 두번 요청해야 함
-    weekend = datetime.strptime(date_str, '%Y-%m-%d').weekday() >= 5
     data = {'shop': record['request_key'].values[0],
             'quest': record['theme_name'].values[0],
             'quest2': record['theme_name'].values[0],
             'date': ''.join(date_str.split('-'))}
     res = requests.post(url, data=data).json()[0]
+    date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    weekend = date.weekday() >= 5 or date in pytimekr.holidays(year=date.year)
     week_str = 'ro_end' if weekend else 'ro_day'
     time_all = [res[week_str + str(i)].split('_')[0] for i in range(1, 50) if res[week_str + str(i)]]
 
@@ -426,14 +428,23 @@ def check_reservation(theme_id, date_str):
             'rsv_date': date_str,
             'rsv_time': rta[0],
             'available': rta[1],
+            'chk_date': datetime.now()
         }
         theme_reserve_list.append(theme_reserve_tmp)
     return theme_reserve_list
 
-# for theme_id in [2197, 3083, 2019, 3386, 3593, 3437, 3159, 3498]:
-#     for date_str in ['2022-04-30', '2022-05-01', '2022-05-02', '2022-05-03', '2022-05-04']:
-#         cr = check_reservation(theme_id, date_str)
-#         upsert_theme_reserve(check_reservation(theme_id, date_str))
 
-
+sql = '''SELECT * FROM roomona.escape_brand_theme
+WHERE theme_id is not null'''
+ebt = execute_sql(sql)
+tid_tmp = list(ebt.theme_id.values)
+# for theme_id in tid_tmp:
+while tid_tmp:
+    theme_id = tid_tmp.pop(0)
+    theme_info = theme_jb.loc[theme_jb['theme_id'] == theme_id]
+    print(len(tid_tmp), ' / '.join(theme_info[['location_category', 'cafe_name', 'theme_name']].values[0]))
+    for date_str in ['2022-05-04', '2022-05-05', '2022-05-06', '2022-05-07', '2022-05-08']:
+        cr = check_reservation(theme_id, date_str)
+        upsert_theme_reserve(check_reservation(theme_id, date_str))
+        print(date_str, [t['rsv_time'] for t in cr if t['available'] == 1])
 

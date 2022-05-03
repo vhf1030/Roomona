@@ -111,9 +111,10 @@ def create_theme_review_text_table():
     `user_name` VARCHAR(63) NOT NULL,
     `review_date` DATE NOT NULL,
     `review_txt` TEXT,
-    `updated` TIMESTAMP NOT NULL DEFAULT NOW(),
+    `check_date` DATE NOT NULL DEFAULT NOW(),
+    `updated` TIME NOT NULL DEFAULT NOW(),
     `deleted` BOOLEAN NOT NULL DEFAULT 0,
-    UNIQUE INDEX `theme_user_date_UNIQUE` (`theme_id`, `user_name`, `review_date`),
+    UNIQUE INDEX `theme_user_date_UNIQUE` (`theme_id`, `user_name`, `review_date`, `check_date`),
     INDEX (`user_name`)
     )ENGINE = MyISAM;
     '''
@@ -151,8 +152,9 @@ def create_theme_reserve_table():
     `rsv_date` DATE NOT NULL,
     `rsv_time` TIME NOT NULL,
     `available` BOOLEAN NOT NULL,
+    `chk_date` DATE NOT NULL,
     `updated` TIMESTAMP NOT NULL DEFAULT NOW(),
-    UNIQUE INDEX `theme_user_date_UNIQUE` (`theme_id`, `rsv_date`, `rsv_time`),
+    UNIQUE INDEX `theme_user_date_UNIQUE` (`theme_id`, `rsv_date`, `rsv_time`, `chk_date`),
     INDEX (`theme_id`),
     INDEX (`rsv_date`)
     )ENGINE = MyISAM;

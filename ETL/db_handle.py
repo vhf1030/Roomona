@@ -60,10 +60,10 @@ def upsert_theme_table(ci_list):
 # upsert_theme_table(ptl)
 
 
-# filtering 이후 진행 (테마평점 4점 이상)
+# # filtering 이후 진행 (테마평점 3점 이상)
 # sql = '''SELECT c.cafe_id, c.cafe_name, t.theme_id, t.theme_name, t.star_rate
 # FROM roomona.escape_theme_jb as t LEFT JOIN roomona.escape_cafe_jb as c ON t.cafe_id = c.cafe_id
-# WHERE c.cafe_name is not null and t.star_rate >= 4;'''
+# WHERE c.cafe_name is not null and t.star_rate >= 3;'''
 # filted = execute_sql(sql)
 
 
@@ -121,13 +121,23 @@ def upsert_theme_review_text(theme_review_text_list):
     return
 
 
-# for tid in filted['theme_id'].values:
-# # for tid in [3528, 3531, 3540, 3030, 2008, 3547, 3548, 3549, 3551, 2019, 2020, 3569, 3572, 3580, 3583]:  # 3526 error
-#     print(filted.loc[filted['theme_id'] == tid])
+# # for tid in filted['theme_id'].values:
+# # # for tid in [3528, 3531, 3540, 3030, 2008, 3547, 3548, 3549, 3551, 2019, 2020, 3569, 3572, 3580, 3583]:  # 3526 error
+# # for tid in ebt.theme_id.values:
+# # sql = '''SELECT * FROM roomona.escape_brand_theme
+# # WHERE theme_id is not null'''
+# # ebt = execute_sql(sql)
+
+# tid_tmp = list(ebt.theme_id.values)
+# while tid_tmp:
+#     tid = tid_tmp.pop(0)
+#     print(len(tid_tmp), filted.loc[filted['theme_id'] == tid])
 #     gtd = get_theme_detail_jb(tid)
 #     upsert_theme_meta([gtd['metadata']])
 #     upsert_theme_review_stat(gtd['review_stats'])
 #     upsert_theme_review_text(gtd['review_texts'])
+
+
 # TODO: db table column 정보 활용하기 - column name 하드코딩 제거 및 updated 갱신
 
 
@@ -150,7 +160,7 @@ def upsert_brand_theme(brand_theme_list):
 
 
 def upsert_theme_reserve(theme_reserve_list):
-    columns = ['theme_id', 'rsv_date', 'rsv_time', 'available']
+    columns = ['theme_id', 'rsv_date', 'rsv_time', 'available', 'chk_date']
     val = [tuple(cm[c] for c in columns) for cm in theme_reserve_list]
     sql = ("INSERT INTO `escape_theme_reserve` (" + ', '.join(columns) +
            ") VALUES (" + ', '.join(['%s']*len(columns)) +
