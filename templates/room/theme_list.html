@@ -1,0 +1,9 @@
+{% if theme_list %}
+    <ul>
+    {% for theme in theme_list %}
+        <li><a href="/room/{{ theme.theme_id }}/">{{ theme.theme_name }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>테마가 없습니다.</p>
+{% endif %}
