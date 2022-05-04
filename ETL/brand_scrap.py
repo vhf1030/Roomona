@@ -434,17 +434,25 @@ def check_reservation(theme_id, date_str):
     return theme_reserve_list
 
 
-sql = '''SELECT * FROM roomona.escape_brand_theme
-WHERE theme_id is not null'''
-ebt = execute_sql(sql)
-tid_tmp = list(ebt.theme_id.values)
-# for theme_id in tid_tmp:
-while tid_tmp:
-    theme_id = tid_tmp.pop(0)
-    theme_info = theme_jb.loc[theme_jb['theme_id'] == theme_id]
-    print(len(tid_tmp), ' / '.join(theme_info[['location_category', 'cafe_name', 'theme_name']].values[0]))
-    for date_str in ['2022-05-04', '2022-05-05', '2022-05-06', '2022-05-07', '2022-05-08']:
-        cr = check_reservation(theme_id, date_str)
-        upsert_theme_reserve(check_reservation(theme_id, date_str))
-        print(date_str, [t['rsv_time'] for t in cr if t['available'] == 1])
+
+# # 날짜 변경 및 일단위 실행 필요
+# sql = '''SELECT c.location_category, c.cafe_name, t.theme_id, t.theme_name
+# FROM roomona.escape_theme_jb as t
+# LEFT JOIN roomona.escape_cafe_jb as c
+#     ON t.cafe_id = c.cafe_id
+# WHERE c.cafe_name is not null'''
+# theme_jb = execute_sql(sql)
+# sql = '''SELECT * FROM roomona.escape_brand_theme
+# WHERE theme_id is not null'''
+# ebt = execute_sql(sql)
+# tid_tmp = list(ebt.theme_id.values)
+# # for theme_id in tid_tmp:
+# while tid_tmp:
+#     theme_id = tid_tmp.pop(0)
+#     theme_info = theme_jb.loc[theme_jb['theme_id'] == theme_id]
+#     print(len(tid_tmp), ' / '.join(theme_info[['location_category', 'cafe_name', 'theme_name']].values[0]))
+#     for date_str in ['2022-05-05', '2022-05-06', '2022-05-07', '2022-05-08', '2022-05-09']:
+#         cr = check_reservation(theme_id, date_str)
+#         upsert_theme_reserve(check_reservation(theme_id, date_str))
+#         print(date_str, [t['rsv_time'] for t in cr if t['available'] == 1])
 

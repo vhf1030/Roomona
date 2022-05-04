@@ -1,0 +1,20 @@
+<div>
+    <h2> {{ theme_detail.theme_name }} </h2>
+
+    {% for t in test %}
+    <li> {{ t }} </li>
+    {% endfor %}
+
+    <br><br><br>
+    {{ theme_detail }}
+<!--필터로 처리 예정-->
+    {% for field in theme_detail %}
+    <li> {{ field }}: theme_detail.{{ field }} </li>
+    {% endfor %}
+
+    {% for value in theme_detail.values %}
+    <li> {{ value }} </li>
+    {% endfor %}
+
+
+</div>
