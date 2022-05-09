@@ -30,6 +30,14 @@ def execute_sql(sql):
 # test = execute_sql(sql)
 
 
+def execute_sql_list(sql_list):
+    for sql in sql_list:
+        print(sql)
+        cursor.execute(sql)
+        cursor.fetchall()
+    return
+
+
 def upsert_cafe_table(ci_list):
     columns = ['cafe_id', 'cafe_name', 'location_category', 'location_detail', 'star_rate', 'star_num']
     val = [tuple(ci[c] for c in columns) for ci in ci_list]
@@ -67,10 +75,10 @@ def upsert_theme_table(ci_list):
 # filted = execute_sql(sql)
 
 
-def upsert_cafe_meta(cafe_meta_list):
+def upsert_cafe_url(cafe_url_list):
     columns = ['cafe_id', 'home_url']
-    val = [tuple(cm[c] for c in columns) for cm in cafe_meta_list]
-    sql = ("INSERT INTO `escape_cafe_meta_jb` (" + ', '.join(columns) +
+    val = [tuple(cm[c] for c in columns) for cm in cafe_url_list]
+    sql = ("INSERT INTO `escape_cafe_url_jb` (" + ', '.join(columns) +
            ") VALUES (" + ', '.join(['%s']*len(columns)) +
            ") ON DUPLICATE KEY UPDATE " +
            ', '.join([c + ' = VALUES(' + c + ')' for c in columns]) +
@@ -78,8 +86,10 @@ def upsert_cafe_meta(cafe_meta_list):
     cursor.executemany(sql, val)
     conn.commit()
     return
-# cafe_meta_list = [get_cafe_detail_jb(cid)['metadata'] for cid in set(filted['cafe_id'].values)]
-# upsert_cafe_meta(cafe_meta_list)
+# cafe_url_list = [get_cafe_url_jb(cid) for cid in set(filted['cafe_id'].values)]
+# upsert_cafe_url(cafe_url_list)
+# # cafe_meta_list = [get_cafe_detail_jb(cid)['metadata'] for cid in set(filted['cafe_id'].values)]
+# # upsert_cafe_meta(cafe_meta_list)
 
 
 def upsert_theme_meta(theme_meta_list):
@@ -136,6 +146,13 @@ def upsert_theme_review_text(theme_review_text_list):
 #     upsert_theme_meta([gtd['metadata']])
 #     upsert_theme_review_stat(gtd['review_stats'])
 #     upsert_theme_review_text(gtd['review_texts'])
+
+
+def upsert_theme_detail(gtd):
+    # gtd = get_theme_detail_jb(tid)
+    upsert_theme_meta([gtd['metadata']])
+    upsert_theme_review_stat(gtd['review_stats'])
+    upsert_theme_review_text(gtd['review_texts'])
 
 
 # TODO: db table column 정보 활용하기 - column name 하드코딩 제거 및 updated 갱신

@@ -50,8 +50,8 @@ def post_theme_list_jb(location_category):
 # ptl = post_theme_list_jb('전국')  # 전국: 1700 / 서울: 602 / 강남: 141
 
 
-# filtering 이후 진행 (테마평점 4점 이상)
-def get_cafe_detail_jb(cafe_id):
+# filtering 이후 진행 (테마평점 3점 이상)
+def get_cafe_url_jb(cafe_id):
     url = 'https://www.roomescape.co.kr/store/detail.php?cafe=' + str(cafe_id)
     res = requests.get(url)
     soup = BeautifulSoup(res.text, 'html.parser')
@@ -61,13 +61,11 @@ def get_cafe_detail_jb(cafe_id):
         print('warning: home_url_tag')
     home_url = home_url_tag[0]['href']
     result = {
-        'metadata': {
-            'cafe_id': cafe_id,
-            'home_url': home_url,
-        }
+        'cafe_id': cafe_id,
+        'home_url': home_url,
     }
     return result
-# gcd = get_cafe_detail_jb(716)
+# gcu = get_cafe_url_jb(716)
 
 
 def parse_theme_meta(theme_id, theme_info_tag):

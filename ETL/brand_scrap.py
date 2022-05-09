@@ -406,6 +406,20 @@ def get_reservation_nextedition(date_str, record):
 # check_reservation(3498, '2022-05-04')
 
 
+def find_brand_theme(brand):
+    if brand == 'keyescape':
+        result = find_theme_keyescape()
+    if brand == 'xphobia':
+        result = find_theme_xphobia()
+    if brand == 'secretgarden':
+        result = find_theme_secretgarden()
+    if brand == 'zeroworld':
+        result = find_theme_zeroworld()
+    if brand == 'nextedition':
+        result = find_theme_nextedition()
+    return result
+
+
 def check_reservation(theme_id, date_str):
     sql = '''SELECT brand_num, brand_name, branch_num, branch_name, theme_num, theme_name, request_key
     FROM roomona.escape_brand_theme
@@ -451,7 +465,7 @@ def check_reservation(theme_id, date_str):
 #     theme_id = tid_tmp.pop(0)
 #     theme_info = theme_jb.loc[theme_jb['theme_id'] == theme_id]
 #     print(len(tid_tmp), ' / '.join(theme_info[['location_category', 'cafe_name', 'theme_name']].values[0]))
-#     for date_str in ['2022-05-05', '2022-05-06', '2022-05-07', '2022-05-08', '2022-05-09']:
+#     for date_str in ['2022-05-10', '2022-05-11', '2022-05-12', '2022-05-13', '2022-05-14']:
 #         cr = check_reservation(theme_id, date_str)
 #         upsert_theme_reserve(check_reservation(theme_id, date_str))
 #         print(date_str, [t['rsv_time'] for t in cr if t['available'] == 1])

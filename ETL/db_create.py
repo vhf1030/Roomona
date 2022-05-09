@@ -51,14 +51,13 @@ def create_theme_table():
     return
 
 
-# filtering 이후 진행 (테마평점 4점 이상)
-def create_cafe_meta_table():
-    sql = '''CREATE TABLE `escape_cafe_meta_jb` (
+# filtering 이후 진행 (테마평점 3점 이상)
+def create_cafe_url_table():
+    sql = '''CREATE TABLE `escape_cafe_url_jb` (
     `cafe_id` SMALLINT PRIMARY KEY,
     `home_url` VARCHAR(255)
     )ENGINE = MyISAM;
     '''
-    # `home_url` VARCHAR(255),  # cafe detail 에서 수집 예정
     cursor.execute(sql)
     conn.commit()
     print(sql)
