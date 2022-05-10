@@ -191,3 +191,13 @@ def upsert_theme_reserve(theme_reserve_list):
 # upsert_theme_reserve(check_reservation(3498, '2022-05-04'))
 # upsert_theme_reserve(check_reservation(3498, '2022-05-03'))
 # upsert_theme_reserve(check_reservation(3498, '2022-05-02'))
+
+
+def update_brand_theme_id(theme_id, match_score, brand_n, branch_n, theme_n):
+    sql = '''UPDATE roomona.escape_brand_theme SET theme_id = %s, match_score = %s, updated = default
+                WHERE brand_num = %s AND branch_num = %s AND theme_num = %s;''' % (
+        theme_id, match_score, brand_n, branch_n, theme_n
+    )
+    execute_sql(sql)
+    return
+

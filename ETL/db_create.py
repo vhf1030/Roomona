@@ -133,9 +133,10 @@ def create_brand_theme_table():
     `theme_name` VARCHAR(63) NOT NULL,
     `request_key` VARCHAR(63),
     `theme_id` SMALLINT DEFAULT NULL,
+    `match_score` DECIMAL(3, 2) DEFAULT NULL,
     `updated` TIMESTAMP NOT NULL DEFAULT NOW(),
     `deleted` BOOLEAN NOT NULL DEFAULT 0,
-    UNIQUE INDEX `theme_user_date_UNIQUE` (`brand_num`, `branch_num`, `theme_num`),
+    UNIQUE INDEX `theme_user_date_UNIQUE` (`brand_num`, `branch_num`, `theme_num`, `theme_id`, `match_score`),
     INDEX (`theme_id`)
     )ENGINE = MyISAM;
     '''
