@@ -448,7 +448,6 @@ def check_reservation(theme_id, date_str):
     return theme_reserve_list
 
 
-
 # # 날짜 변경 및 일단위 실행 필요
 # sql = '''SELECT c.location_category, c.cafe_name, t.theme_id, t.theme_name
 # FROM roomona.escape_theme_jb as t

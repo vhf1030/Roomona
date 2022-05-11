@@ -1,9 +1,11 @@
 from config.my_config import SQL_QUERY
+from config.utils import date_convert
 from ETL.jb_scrap import post_cafe_list_jb, post_theme_list_jb, get_cafe_url_jb, get_theme_detail_jb
-from ETL.brand_scrap import find_brand_theme
+from ETL.brand_scrap import find_brand_theme, check_reservation
 from ETL.db_handle import execute_sql, execute_sql_list, upsert_cafe_table, upsert_theme_table, upsert_cafe_url,\
-    upsert_theme_detail, upsert_brand_theme, update_brand_theme_id
+    upsert_theme_detail, upsert_brand_theme, update_brand_theme_id, upsert_theme_reserve
 import time
+from datetime import datetime
 
 
 def run_jb_scrap():
@@ -74,11 +76,30 @@ def run_brand_theme():
             cafe_name_tmp = tb_jb[tb_jb['theme_id'] == tid].iloc[0]['cafe_name']
             if brand in cafe_name_tmp and branch in cafe_name_tmp:
                 # escape_brand_theme
-                # TODO: match score 최신 값으로 비교
-                execute_sql('select match_score from roomona.escape_brand_theme where theme_id = %s' % tid)
-                if not br['match_score'] or br['match_score'] < match_dict[tid][1]:
+                ms_ori = execute_sql(
+                    'select match_score from roomona.escape_brand_theme where theme_id = %s' % tid
+                )
+                if ms_ori.empty or ms_ori['match_score'][0] < round(match_dict[tid][1], 2):
                     update_brand_theme_id(tid, match_dict[tid][1], br['brand_num'], br['branch_num'], br['theme_num'])
     return
 
+
 # 예약 테이블 업데이트
+def run_reserve_check():
+    brand_matched = execute_sql(SQL_QUERY['select_brand_match_score'])
+    tid_tmp = list(brand_matched['theme_id'].values)
+    # for theme_id in tid_tmp:
+    while tid_tmp:
+        theme_id = tid_tmp.pop(0)
+        theme_info = brand_matched.loc[brand_matched['theme_id'] == theme_id]
+        print(len(tid_tmp), ' / '.join(theme_info[['location_category', 'cafe_name', 'theme_name']].values[0]))
+        # for date_str in ['2022-05-12', '2022-05-13', '2022-05-14', '2022-05-15', '2022-05-16']:
+        for i in range(5):
+            date_now = date_convert(datetime.now())
+            date_str = date_convert(date_now, i)
+            cr = check_reservation(theme_id, date_str)
+            upsert_theme_reserve(cr)
+            print(date_str, [t['rsv_time'] for t in cr if t['available'] == 1])
+
+
 
