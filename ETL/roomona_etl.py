@@ -38,10 +38,9 @@ def run_jb_scrap():
             theme_list.append(tid)
             time.sleep(10)
 
-    # escape_jb_stats - 통합
+    # escape_jb_stats - 통합하여 새로운 테이블 생성: product db로 사용
     execute_sql_list(SQL_QUERY['integ_jb_stats_query_list'])
     return
-
 
 
 def run_brand_theme():
@@ -94,7 +93,7 @@ def run_reserve_check():
         theme_info = brand_matched.loc[brand_matched['theme_id'] == theme_id]
         print(len(tid_tmp), ' / '.join(theme_info[['location_category', 'cafe_name', 'theme_name']].values[0]))
         # for date_str in ['2022-05-12', '2022-05-13', '2022-05-14', '2022-05-15', '2022-05-16']:
-        for i in range(5):
+        for i in range(1, 6):
             date_now = date_convert(datetime.now())
             date_str = date_convert(date_now, i)
             cr = check_reservation(theme_id, date_str)

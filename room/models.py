@@ -29,8 +29,8 @@ class EscapeJbStats(models.Model):
     success_rate = models.DecimalField(max_digits=7, decimal_places=4, blank=True, null=True)
     left_stat = models.DecimalField(max_digits=9, decimal_places=4, blank=True, null=True)
     limit_time = models.SmallIntegerField(blank=True, null=True)
-    hint_stst = models.DecimalField(max_digits=9, decimal_places=4, blank=True, null=True)
-    trs_updated = models.DateTimeField()
+    hint_use = models.DecimalField(max_digits=9, decimal_places=4, blank=True, null=True)
+    review_updated = models.DateTimeField()
 
     class Meta:
         managed = False
