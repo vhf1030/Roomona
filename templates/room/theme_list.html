@@ -1,15 +1,38 @@
-{% if theme_list %}
-    <ul>
-    {% for theme in theme_list %}
-        <li>
-            {{ theme.location_category }}
-<!--            <a href="/room/{{ theme.theme_id }}/">{{ theme.theme_name }}</a>-->
-            <a href="{% url 'room:detail' theme.theme_id %}">{{ theme.theme_name }}</a>
-            {{ theme.star_stat }}
-            <a href={{ theme.home_url }}>홈페이지</a>
-        </li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>테마가 없습니다.</p>
-{% endif %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'bootstrap.min.css' %}">
+
+<div class="container my-3">
+    <table class="table">
+        <thead>
+        <tr class="thead-dark">
+            <th>번호<br>지역</th>
+            <th>테마명<br>매장명</th>
+            <th>별점<br>난이도</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if theme_list %}
+        {% for theme in theme_list %}
+        <tr>
+            <td>
+                <br>
+                {{ theme.location_category }}
+            </td>
+            <td>
+                <a href="{% url 'room:detail' theme.theme_id %}">{{ theme.theme_name }}</a><br>
+                <a href={{ theme.home_url }}>{{ theme.cafe_name }}</a>
+            </td>
+            <td>
+                {{ theme.star_stat }}<br>
+                {{ theme.diff_stat }}
+            </td>
+    <!--            <a href="/room/{{ theme.theme_id }}/">{{ theme.theme_name }}</a>-->
+            </td>
+        {% endfor %}
+        </tr>
+        {% else %}
+        <p>테마가 없습니다.</p>
+    {% endif %}
+        </tbody>
+    </table>
+</div>

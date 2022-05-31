@@ -27,6 +27,7 @@ def run_jb_scrap():
     # escape_theme_meta_jb, escape_theme_review_stat_jb, escape_theme_review_text_jb
     theme_list = list(filted['theme_id'].values)
     print('start theme detail:', len(theme_list))
+    tid = 'start'
     while theme_list:
         print(len(theme_list), tid)
         try:
